@@ -71,6 +71,7 @@ public abstract class TransportLayer {
 		wait();
 	    } catch (InterruptedException e) {}
 	}
+	
 	m_wakeup = false;
 	return m_event;
     }
@@ -78,6 +79,7 @@ public abstract class TransportLayer {
     public synchronized void onPacketArrival() {
 	m_wakeup = true;
 	m_event = EVENT_PACKET_ARRIVAL;
+	stopTimer();
 	notifyAll();
     }
 

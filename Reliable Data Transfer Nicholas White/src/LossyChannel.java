@@ -7,12 +7,15 @@
 import java.io.*; 
 import java.net.*; 
 import java.util.*;
+import javax.swing.*;
+
 
 public class LossyChannel {
     private InetAddress m_IPAddress;
     private DatagramSocket m_socket = null;
     private int m_localport = 0;
     private int m_remoteport = 0;
+    public int userDefinedLossRate =0;
 
     private byte[] m_receiveBuffer = new byte[Packet.MAX_PACKET_SIZE]; 
     private TransportLayer m_transportLayer = null;
@@ -42,7 +45,7 @@ public class LossyChannel {
 	// simulate random loss of packet
 	Random rand = new Random();
 	int randnum = rand.nextInt(10); // range 0-10
-	if(randnum < 3)
+	if(randnum < userDefinedLossRate/10)
 	    return; // simulate a loss
 
 	try {

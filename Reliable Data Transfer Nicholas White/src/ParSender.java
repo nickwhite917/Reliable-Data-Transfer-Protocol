@@ -5,7 +5,9 @@
  */
 
 import java.io.*; 
-  
+import java.util.*;
+
+
 public class ParSender extends TransportLayer{ 
     public static final int RECEIVER_PORT = 9888;
     public static final int SENDER_PORT = 9887;
@@ -15,41 +17,59 @@ public class ParSender extends TransportLayer{
     }
 
     public void run() {
-	byte nextPacketToSend = 0;
-	Packet packet = new Packet();	
-	byte[] msgToSend = getMessageToSend();
-
-	if(null == msgToSend)
-	    return;
-	
-	while(true) {
-	    // To be completed for task#2
-	    // populate the packet fields
+    	boolean finishedSendingMessages = false;
+    	while(true){
+			byte nextPacketToSend = 0;
+			Packet packet = new Packet();	
+			byte[] msgToSend = getMessageToSend();
+			if(null == msgToSend)
+			    return;
+			boolean sendingFinished = false;
+			while(!sendingFinished) {
+			    // To be completed for task#2
+			    // populate the packet fields
+				int payloadLength = 0;
+				for(int i = 0; i < msgToSend.length; i++){
+					packet.payload[i] = msgToSend[i];
+					payloadLength++;
+				}
+				packet.length = payloadLength;
+				
+			    sendToLossyChannel(packet);
+			    startTimer();
+			    m_wakeup = false;
 		
-		// packet.payload = msgToSend;
-		int payloadLength = 0;
-		for(int i = 0; i < msgToSend.length; i++){
-			packet.payload[i] = msgToSend[i];
-			payloadLength++;
-		}
-		packet.length = payloadLength;
-		
-	    sendToLossyChannel(packet);
-	    m_wakeup = false;
+			    // To be completed for task#2
+			    // start timer for retransmission
+			    boolean packetReturned = false;
+			    while(!packetReturned){
+				    int event = waitForEvent();
+				    if(EVENT_PACKET_ARRIVAL == event) {
+				    	packet = receiveFromLossyChannel();
+				    	packetReturned = true;
+			
+					// To be completed for task#2
+					// PAR protocol implementation: sender side
+				    }
+				    else if(EVENT_TIMEOUT == event){
+				    	sendToLossyChannel(packet);
+				    	startTimer();
+				    	System.out.println("Timeout, resending...");
+				    }
+				    sendingFinished = true;
+			    }
+				
+				// To be completed for task#2
+				// PAR protocol implementation: sender side
+			    System.out.println("Are you finished sending messages? Enter 0 for no and 1 for yes.");
+			    Scanner in = new Scanner(System.in);
+			    String answer = in.nextLine();
+	    		if(answer.equals("1")){
+	    			System.exit(1);
+	    		}
 
-	    // To be completed for task#2
-	    // start timer for retransmission
-
-	    int event = waitForEvent();
-	    if(EVENT_PACKET_ARRIVAL == event) {
-		packet = receiveFromLossyChannel();
-		System.out.println(packet.toString());
-		// To be completed for task#2
-		// PAR protocol implementation: sender side
-
-		
-	    }
-	}
+			}
+    	}
     }
     
 
@@ -57,24 +77,46 @@ public class ParSender extends TransportLayer{
     //
     // We get message to send from stdin
     byte[] getMessageToSend() {
+    String sentence = "";
 	System.out.println("Please enter a message to send: ");
 	try {
-	    BufferedReader inFromUser = 
+		BufferedReader inFromUser = 
 		new BufferedReader(new InputStreamReader(System.in)); 
-	    String sentence = inFromUser.readLine(); 
-	    if(null == sentence)
+		sentence = inFromUser.readLine(); 
+		if(null == sentence)
 		System.exit(1);
+		
+		String path = sentence;
+		BufferedReader br = new BufferedReader(new FileReader(path));
+	    try {
+	        StringBuilder sb = new StringBuilder();
+	        String line = br.readLine();
+
+	        while (line != null) {
+	            sb.append(line);
+	            sb.append(System.lineSeparator());
+	            line = br.readLine();
+	        }
+	        sentence = sb.toString();
+	    } finally {
+	        br.close();
+	    }
+
+
 	    System.out.println("Sending: "+sentence);
 	    
-	    return sentence.getBytes();         
+	    return sentence.getBytes();
+	    
 	} catch(Exception e) {
 	    System.out.println("IO error: "+e);
-	    return null;
+	    System.out.println("The value you entered does not appear to be a valid file name, the text is being treated as a plain-text message, and will be sent as it was typed.");
+	    return sentence.getBytes();
 	}
     }
 
     public static void main(String args[]) throws Exception { 
 	LossyChannel lc = new LossyChannel(SENDER_PORT, RECEIVER_PORT);
+	lc.userDefinedLossRate = Integer.parseInt(args[0]);
 	ParSender sender = new ParSender(lc);
 	lc.setTransportLayer(sender);
 	sender.run();

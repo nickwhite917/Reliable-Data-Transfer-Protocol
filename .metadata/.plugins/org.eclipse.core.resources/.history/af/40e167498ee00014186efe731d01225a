@@ -1,0 +1,118 @@
+/*
+ * Author: Wenbing Zhao
+ * Last Modified: 10/4/2009
+ * For EEC484 Project
+ */
+
+import java.io.*; 
+import java.util.*;
+
+
+public class ParSender extends TransportLayer{ 
+    public static final int RECEIVER_PORT = 9888;
+    public static final int SENDER_PORT = 9887;
+
+    public ParSender(LossyChannel lc) {
+	super(lc);
+    }
+
+    public void run() {
+	byte nextPacketToSend = 0;
+	final Packet packet = new Packet();	
+	byte[] msgToSend = getMessageToSend();
+
+	if(null == msgToSend)
+	    return;
+	
+	while(true) {
+	    // To be completed for task#2
+	    // populate the packet fields
+		
+		// packet.payload = msgToSend;
+		int payloadLength = 0;
+		for(int i = 0; i < msgToSend.length; i++){
+			packet.payload[i] = msgToSend[i];
+			payloadLength++;
+		}
+		packet.length = payloadLength;
+		
+	    sendToLossyChannel(packet);
+	    m_wakeup = false;
+
+	    // To be completed for task#2
+	    // start timer for retransmission
+
+	    	
+
+		Timer timer = new Timer();    
+		timer.scheduleAtFixedRate(new TimerTask() {
+			  @Override
+			  public void run() {
+				  boolean packetReturned = false;
+				  while(!packetReturned){
+					  int event = waitForEvent();
+					  if(EVENT_PACKET_ARRIVAL == event) {
+						 //packet = receiveFromLossyChannel();
+						 packetReturned = true;
+					  }
+				  }
+			  }
+		}, 1*60*1000, 1*60*1000);
+		
+		// To be completed for task#2
+		// PAR protocol implementation: sender side
+
+		
+	    }
+	}
+    
+
+    // To be modified for task#4
+    //
+    // We get message to send from stdin
+    byte[] getMessageToSend() {
+    String sentence = "";
+	System.out.println("Please enter a message to send: ");
+	try {
+		BufferedReader inFromUser = 
+		new BufferedReader(new InputStreamReader(System.in)); 
+		sentence = inFromUser.readLine(); 
+		if(null == sentence)
+		System.exit(1);
+		
+		String path = sentence;
+		BufferedReader br = new BufferedReader(new FileReader(path));
+	    try {
+	        StringBuilder sb = new StringBuilder();
+	        String line = br.readLine();
+
+	        while (line != null) {
+	            sb.append(line);
+	            sb.append(System.lineSeparator());
+	            line = br.readLine();
+	        }
+	        sentence = sb.toString();
+	    } finally {
+	        br.close();
+	    }
+
+
+	    System.out.println("Sending: "+sentence);
+	    
+	    return sentence.getBytes();
+	    
+	} catch(Exception e) {
+	    System.out.println("IO error: "+e);
+	    System.out.println("The value you entered does not appear to be a valid file name, the text is being treated as a plain-text message, and will be sent as it was typed.");
+	    return sentence.getBytes();
+	}
+    }
+
+    public static void main(String args[]) throws Exception { 
+	LossyChannel lc = new LossyChannel(SENDER_PORT, RECEIVER_PORT);
+	lc.userDefinedLossRate = Integer.parseInt(args[1]);
+	ParSender sender = new ParSender(lc);
+	lc.setTransportLayer(sender);
+	sender.run();
+    } 
+} 
