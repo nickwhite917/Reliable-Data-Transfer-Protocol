@@ -25,7 +25,15 @@ public class ParSender extends TransportLayer{
 	while(true) {
 	    // To be completed for task#2
 	    // populate the packet fields
-		packet.payload = msgToSend;
+		
+		// packet.payload = msgToSend;
+		int payloadLength = 0;
+		for(int i = 0; i < msgToSend.length; i++){
+			packet.payload[i] = msgToSend[i];
+			payloadLength++;
+		}
+		packet.length = payloadLength;
+		
 	    sendToLossyChannel(packet);
 	    m_wakeup = false;
 
@@ -35,7 +43,7 @@ public class ParSender extends TransportLayer{
 	    int event = waitForEvent();
 	    if(EVENT_PACKET_ARRIVAL == event) {
 		packet = receiveFromLossyChannel();
-
+		System.out.println(packet.toString());
 		// To be completed for task#2
 		// PAR protocol implementation: sender side
 
