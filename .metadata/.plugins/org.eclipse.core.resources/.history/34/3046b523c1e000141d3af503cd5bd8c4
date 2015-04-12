@@ -1,0 +1,148 @@
+/*
+ * Author: Wenbing Zhao
+ * Last Modified: 10/4/2009
+ * For EEC484 Project
+ */
+
+import java.io.*; 
+import java.util.*;
+
+
+public class ParSender extends TransportLayer{ 
+    public static final int RECEIVER_PORT = 9888;
+    public static final int SENDER_PORT = 9887;
+    public String filePath;
+    public boolean isFile;
+    public List fileLines;
+    public ParSender(LossyChannel lc) {
+	super(lc);
+    }
+
+    public void run() {
+    	boolean finishedSendingMessages = false;
+    	while(true){
+			byte nextPacketToSend = 0;
+			Packet packet = new Packet();
+			byte[] msgToSend = getMessageToSend();
+			if(null == msgToSend)
+			    return;
+			
+			if(isFile){
+				
+			}
+			else{
+				
+			}
+			
+			boolean sendingFinished = false;
+			while(!sendingFinished) {
+			    // To be completed for task#2
+			    // populate the packet fields
+				int payloadLength = 0;
+				for(int i = 0; i < msgToSend.length; i++){
+					packet.payload[i] = msgToSend[i];
+					payloadLength++;
+				}
+				packet.length = payloadLength;
+				packet.seq = (byte)0; //These will be flipped in transport layer. 
+				packet.ack = (byte)1;
+				
+				
+			    sendToLossyChannel(packet);
+			    startTimer();
+			    m_wakeup = false;
+		
+			    // To be completed for task#2
+			    // start timer for retransmission
+			    boolean packetReturned = false;
+			    while(!packetReturned){
+				    int event = waitForEvent();
+				    if(EVENT_PACKET_ARRIVAL == event) {
+				    	packet = receiveFromLossyChannel();
+				    	packetReturned = true;
+				    	System.out.println("Packet returned: Seq#:" + packet.seq + "ACK#:" + packet.ack);
+			
+					// To be completed for task#2
+					// PAR protocol implementation: sender side
+				    }
+				    else if(EVENT_TIMEOUT == event){
+				    	sendToLossyChannel(packet);
+				    	startTimer();
+				    	System.out.println("Timeout, resending...");
+				    }
+				    sendingFinished = true;
+			    }
+				
+				// To be completed for task#2
+				// PAR protocol implementation: sender side
+			    System.out.println("Are you finished sending messages? Enter 0 for no and 1 for yes.");
+			    Scanner in = new Scanner(System.in);
+			    String answer = in.nextLine();
+	    		if(answer.equals("1")){
+	    			System.exit(1);
+	    		}
+
+			}
+    	}
+    }
+    
+   
+    // To be modified for task#4
+    //
+    // We get message to send from stdin
+    byte[] getMessageToSend() {
+    String sentence = "";
+	System.out.println("Please enter a message to send: ");
+	try {
+		BufferedReader inFromUser = 
+		new BufferedReader(new InputStreamReader(System.in)); 
+		sentence = inFromUser.readLine(); 
+		if(null == sentence)
+		System.exit(1);
+		
+		String path = sentence;
+		BufferedReader br = new BufferedReader(new FileReader(path));
+		filePath = path;
+		isFile = true;
+	    try {
+	    	BufferedReader reader = new BufferedReader(new FileReader(path));
+	    	int lines = 0;
+	    	while (reader.readLine() != null) lines++;
+	    	reader.close();
+	    	
+	        StringBuilder sb = new StringBuilder();
+	        String line = br.readLine();
+	        fileLines = new String[lines];
+	        int i =0;
+	        while (line != null) {
+	            sb.append(line);
+	            sb.append(System.lineSeparator());
+	            line = br.readLine();
+	            fileLines[i] = line;
+	            i++;
+	        }
+	        sentence = sb.toString();
+	    } finally {
+	        br.close();
+	    }
+
+
+	    System.out.println("Sending: "+sentence);
+	    
+	    return sentence.getBytes();
+	    
+	} catch(Exception e) {
+	    System.out.println("The value you entered does not appear to be a valid file name, the text is being treated as a plain-text message, and will be sent as it was typed.");
+	    fileLines = new String[1];
+	    return sentence.getBytes();
+	}
+    }
+
+    public static void main(String args[]) throws Exception { 
+	LossyChannel lc = new LossyChannel(SENDER_PORT, RECEIVER_PORT);
+	lc.userDefinedLossRate = Integer.parseInt(args[0]);
+	ParSender sender = new ParSender(lc);
+	lc.setTransportLayer(sender);
+	sender.run();
+    } 
+} 

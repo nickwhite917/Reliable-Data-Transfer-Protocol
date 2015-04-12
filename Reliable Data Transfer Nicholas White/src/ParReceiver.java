@@ -18,25 +18,40 @@ public class ParReceiver extends TransportLayer{
 	byte nextPacketExpected = 0;
 	Packet packetReceived = new Packet();
 	Packet packetToSend = new Packet();
+	packetToSend.ack = 1;
+	packetToSend.seq = 0;
 
 	System.out.println("Ready to receive: ");
 
 	while(true) {
+		System.out.println("Waiting for: Seq:"+packetToSend.seq+" and ACK:"+packetToSend.ack);
 	    int event = waitForEvent();
 	    if(EVENT_PACKET_ARRIVAL == event) {
 			packetReceived = receiveFromLossyChannel();
 			deliverMessage(packetReceived);
-			deliverMessageToFile(packetReceived);
+			System.out.println("Received: Seq:" + packetReceived.seq +" Ack:" + packetReceived.ack);
+			if(packetReceived.seq == nextPacketExpected){
+				deliverMessageToFile(packetReceived);
+			}
+			else{
+				System.out.println("Packet received but was out of order...");
+				System.out.println("Expecting: "+nextPacketExpected);
+				System.out.println("Got: "+packetReceived.seq);
+			}
 			
-			Packet packet = new Packet();
-			byte[] msgToSend = ("Got your message, replying...").getBytes();
+			packetToSend.seq = packetReceived.seq;
+			packetToSend.ack = increment(packetReceived.ack);
+			nextPacketExpected = increment(nextPacketExpected);
+			String msg = "Seq:" + packetToSend.seq + "Ack:"+packetToSend.ack;
+			byte[] msgToSend = msg.getBytes();
 			int payloadLength = 0;
 			for(int i = 0; i < msgToSend.length; i++){
-				packet.payload[i] = msgToSend[i];
+				packetToSend.payload[i] = msgToSend[i];
 				payloadLength++;
 			}
-			packet.length = payloadLength;
-		    sendToLossyChannel(packet);
+			packetToSend.length = payloadLength;
+			
+		    sendToLossyChannel(packetToSend);
 		    m_wakeup = false;
 	    }
 	    
@@ -62,7 +77,7 @@ public class ParReceiver extends TransportLayer{
     	    payload[i] = packet.payload[i];
     	String recvd = new String(payload);
     	
-    	String outputFileName =  "Packet Received"+packet.toString();
+    	String outputFileName =  "OUTPUT";
 		try{
 		PrintWriter writer = new PrintWriter(outputFileName+".txt", "UTF-8");
 		writer.println("Received "+packet.length+" bytes: "
