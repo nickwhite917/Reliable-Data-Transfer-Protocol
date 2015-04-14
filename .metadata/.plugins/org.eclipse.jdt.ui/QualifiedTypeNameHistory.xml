@@ -7,4 +7,7 @@
 <fullyQualifiedTypeName name="java.util.concurrent.TimeoutException"/>
 <fullyQualifiedTypeName name="java.util.concurrent.ExecutionException"/>
 <fullyQualifiedTypeName name="java.io.PrintWriter"/>
+<fullyQualifiedTypeName name="java.util.Map"/>
+<fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="java.util.Hashtable"/>
 </qualifiedTypeNameHistroy>
