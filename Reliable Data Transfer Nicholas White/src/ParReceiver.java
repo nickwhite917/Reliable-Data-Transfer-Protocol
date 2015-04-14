@@ -1,4 +1,6 @@
 import java.io.PrintWriter;
+import java.util.Hashtable;
+
 
 /*
  * Author: Wenbing Zhao
@@ -9,7 +11,9 @@ import java.io.PrintWriter;
 public class ParReceiver extends TransportLayer{
     public static final int RECEIVER_PORT = 9888;
     public static final int SENDER_PORT = 9887;
-
+    public static Hashtable<Byte,Packet> packetBuf = new Hashtable<Byte,Packet>(){{
+				
+	}};
     public ParReceiver(LossyChannel lc) {
 	super(lc);
     }
@@ -22,22 +26,38 @@ public class ParReceiver extends TransportLayer{
 	packetToSend.seq = 0;
 
 	System.out.println("Ready to receive: ");
-
+	
 	while(true) {
 		System.out.println("Waiting for: Seq:"+packetToSend.seq+" and ACK:"+packetToSend.ack);
 	    int event = waitForEvent();
 	    if(EVENT_PACKET_ARRIVAL == event) {
 			packetReceived = receiveFromLossyChannel();
-			deliverMessage(packetReceived);
 			System.out.println("Received: Seq:" + packetReceived.seq +" Ack:" + packetReceived.ack);
-			if(packetReceived.seq == nextPacketExpected){
-				deliverMessageToFile(packetReceived);
+			deliverMessage(packetReceived);
+			
+			boolean checkedBuffer = false;
+			while(!checkedBuffer){
+				if(packetReceived.seq == nextPacketExpected){
+					deliverMessageToFile(packetReceived);
+					checkedBuffer = true;
+				}
+				else{
+					System.out.println("Packet received but was out of order...");
+					System.out.println("Expecting: "+nextPacketExpected);
+					System.out.println("Got: "+packetReceived.seq);
+					if(!(packetBuf.containsKey(nextPacketExpected))){
+						packetBuf.put(packetReceived.seq, packetReceived);
+						checkedBuffer = true;
+					}
+					else{
+						deliverMessageToFile(packetBuf.get(nextPacketExpected));
+						packetBuf.remove(nextPacketExpected);
+					}
+					
+				}
 			}
-			else{
-				System.out.println("Packet received but was out of order...");
-				System.out.println("Expecting: "+nextPacketExpected);
-				System.out.println("Got: "+packetReceived.seq);
-			}
+			
+			
 			
 			packetToSend.seq = packetReceived.seq;
 			packetToSend.ack = increment(packetReceived.ack);
@@ -68,7 +88,7 @@ public class ParReceiver extends TransportLayer{
 	String recvd = new String(payload);
 	System.out.println("Received "+packet.length+" bytes: "
 			   +new String(payload));
-	System.out.println("received payload len: "+recvd.length());
+	//System.out.println("received payload len: "+recvd.length());
     }
     
     void deliverMessageToFile(Packet packet) {
@@ -82,7 +102,7 @@ public class ParReceiver extends TransportLayer{
 		PrintWriter writer = new PrintWriter(outputFileName+".txt", "UTF-8");
 		writer.println("Received "+packet.length+" bytes: "
 				   +new String(payload));
-		writer.println("received payload len: "+recvd.length());
+		//writer.println("received payload len: "+recvd.length());
 		writer.close();
 		
 		}catch (Exception e) {}

@@ -1,2 +1,1 @@
-Received 6 bytes: Eighth
-received payload len: 6
+Received 20 bytes: ~/Desktop/chrome.txt

@@ -31,8 +31,12 @@ public class ParSender extends TransportLayer{
 			    return;
 			
 
-			for(int k =0; k < fileLines.size() -1; k++){
-				String msg = fileLines.get(k).toString();
+			for(int k =0; k < fileLines.size(); k++){
+				String msg;
+				try{
+				msg = fileLines.get(k).toString();
+				}
+				catch(Exception e){return;}				
 				msgToSend = msg.getBytes();
 				boolean sendingFinished = false;
 				while(!sendingFinished) {
@@ -147,6 +151,7 @@ public class ParSender extends TransportLayer{
 	} catch(Exception e) {
 	    System.out.println("The value you entered does not appear to be a valid file name, the text is being treated as a plain-text message, and will be sent as it was typed.");
 	    fileLines = new ArrayList();
+	    fileLines.add(sentence);
 	    return sentence.getBytes();
 	}
     }
