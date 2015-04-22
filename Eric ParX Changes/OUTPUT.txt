@@ -1,0 +1,43 @@
+Received 4 bytes: HEY!
+Received 3 bytes: HEY
+Received 4 bytes: heye
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 42 bytes: c://Users/517066/GetSqlOperatorChanges.txt
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 0 bytes: 
+Received 3 bytes: hey
+Received 1 bytes: j
