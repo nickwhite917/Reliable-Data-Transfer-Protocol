@@ -1,0 +1,254 @@
+/* Author: Wenbing Zhao
+ * Last Modified: 10/4/2009
+ * For EEC484 Project
+ */
+
+import java.io.*; 
+import java.util.*;
+
+public class ParSender extends TransportLayer{ 
+    public static final int RECEIVER_PORT = 9888;
+    public static final int SENDER_PORT = 9887;
+    public String filePath;
+    public List<String> fileLines;
+    public boolean isFirstPacket;
+    public byte seqExpected;
+    public byte ackExpected;
+    
+    public ParSender(LossyChannel lc) 
+    {
+    	super(lc);
+    }
+
+    /*
+	*	Function	:	getMessageToSend //Get message or file path from user
+	*	Arguments	:	none
+	*	Returns		:	byte array
+    */
+    public void run() {
+
+    	boolean finishedSendingMessages = false;
+
+    	//Loop until user enters that they are done sending messages
+    	while(!finishedSendingMessages)
+    	//while(true)
+    	{
+    		//Create first packet
+    		isFirstPacket = true;
+			Packet packet = new Packet();
+			byte[] msgToSend = getMessageToSend();
+			if(null == msgToSend)
+			{
+				finishedSendingMessages=true;
+				break;
+			    //return;
+			}
+			
+
+			for(int k =0; k < fileLines.size(); k++)
+			{
+				String msg = null;
+				try
+				{
+					msg = fileLines.get(k).toString();
+				}
+				catch(Exception e)
+				{
+					break;
+				}				
+				msgToSend = msg.getBytes();
+				boolean sendingFinished = false;
+				while(!sendingFinished) 
+				{
+				    // To be completed for task#2
+				    // populate the packet fields
+					int payloadLength = 0;
+					for(int i = 0; i < msgToSend.length; i++)
+					{
+						packet.payload[i] = msgToSend[i];
+						payloadLength++;
+					}
+					
+					packet.length = payloadLength;
+					
+					if(isFirstPacket)
+					{
+						packet.seq = (byte)0;  
+						packet.ack = (byte)1;
+						isFirstPacket = false;
+					}
+					else
+					{
+						packet.seq = seqExpected;
+						packet.ack = ackExpected;
+					}
+					
+					System.out.println("Packet sent: Seq#:" + packet.seq + " ACK#:" + packet.ack);
+				    sendToLossyChannel(packet);
+				    startTimer();
+				    m_wakeup = false;
+			
+				    // To be completed for task#2
+				    // start timer for retransmission
+				    boolean packetReturned = false;
+				    while(!packetReturned)
+				    {
+					    int event = waitForEvent();
+					    if(EVENT_PACKET_ARRIVAL == event) {
+					    	packet = receiveFromLossyChannel();
+					    	packetReturned = true;
+					    	seqExpected = increment(packet.seq);
+					    	ackExpected = packet.ack;
+					    	System.out.println("Packet returned: Seq#:" + packet.seq + " ACK#:" + packet.ack);
+				
+						// To be completed for task#2
+						// PAR protocol implementation: sender side
+					    }
+					    else if(EVENT_TIMEOUT == event){
+					    	System.out.println("Timeout, resending...");
+					    	System.out.println("Packet returned: Seq#:" + packet.seq + " ACK#:" + packet.ack);
+					    	sendToLossyChannel(packet);
+					    	startTimer();
+
+					    }
+					    sendingFinished = true;
+				    }
+				}
+					// To be completed for task#2
+					// PAR protocol implementation: sender side	
+			}
+			 
+	    	}
+    	
+    }
+    
+   
+    // To be modified for task#4
+    /*
+	*	Function	:	getMessageToSend //Get message or file path from user
+	*	Arguments	:	none
+	*	Returns		:	byte array
+    */
+    byte[] getMessageToSend() {
+	    String sentence = "";
+		System.out.println("Enter a message to send (To send a file, enter the complete path) :> ");
+		//Assuming the user's input is a file, try to open it...
+		String userInputFromConsole = null;
+		try {
+			BufferedReader inFromUser = 
+			new BufferedReader(new InputStreamReader(System.in)); 
+
+			//Get user's input
+			userInputFromConsole = inFromUser.readLine(); 
+			if(null == userInputFromConsole)
+			System.exit(1); //Not sure why this is here, I'll trace through and see what impact it has.
+			
+			BufferedReader br = new BufferedReader(new FileReader(userInputFromConsole));
+			filePath = userInputFromConsole;
+		    try 
+		    {	    	
+		        StringBuilder sb = new StringBuilder();
+		        String line = br.readLine();
+		        fileLines = new ArrayList<String>();
+		        fileLines.add(line);
+		        while (line != null) {
+		            sb.append(line);
+		            sb.append(System.lineSeparator());
+		            line = br.readLine();
+		            fileLines.add(line);
+	        }
+		        userInputFromConsole = sb.toString();
+		    } finally {
+		        br.close();
+		    }
+
+		    //Tell the user we are sending the file at path 'userInputFromConsole'
+		    System.out.println("Sending: " + userInputFromConsole);
+		 	//Return the contents of the file in byte form
+		    return userInputFromConsole.getBytes();
+		    
+		} catch(Exception e) { //Executed when the user enters a message, not a file path
+		    System.out.printf("Sending '%s' ",userInputFromConsole);
+		    fileLines = new ArrayList<String>();
+		    fileLines.add(userInputFromConsole);
+		    //Return the message string in byte form
+		    return userInputFromConsole.getBytes();
+		}
+    }
+
+    /*
+	*	Function	:	getLossRate //Get loss rate from user using Scanner
+	*	Returns		:	integer //User defined loss rate
+	*	Arguments	:	none
+    */
+    public static int getLossRate(){
+    	//Prompt
+    	System.out.println("Would you like to change the loss rate? (Enter 0 for No and 1 for Yes) :> ");
+    	//Create scanner and take input
+	    Scanner in = new Scanner(System.in);
+	    String answer = in.nextLine();
+	    //If user wants to change rate...
+		if(answer.equals("1"))
+		{
+			System.out.println("Please enter your desired loss rate as a percentage (E.g. 20 for 20%):> ");
+		    answer = in.nextLine();	  
+		    return Integer.valueOf(answer);
+		    /*  	
+		    switch(answer)
+		    {    
+		    case "10":
+				lc.userDefinedLossRate = Integer.valueOf(answer);
+				break;    
+		    case "20":
+				lc.userDefinedLossRate = Integer.valueOf(answer);
+				break;    
+		    case "30":
+				lc.userDefinedLossRate = Integer.valueOf(answer);
+				break;
+			default:
+				break;	    
+		    } */
+		}
+		//Return 0% loss rate if user does not want to change rate
+		else{
+			return 0;
+		}
+    }
+
+    /*
+	*	Function	:	Main
+	*	Returns		:	Void
+	*	Arguments	:	String args[] //Command line arguments
+    */
+    public static void main(String args[]) throws Exception { 
+
+    	//Instantiate lossy channel
+		LossyChannel lc = new LossyChannel(SENDER_PORT, RECEIVER_PORT); //Instantiate lossy channel
+		
+		//Get packet loss rate from user
+		lc.userDefinedLossRate = getLossRate();
+		//Instantiate and run sender ParSender
+		ParSender sender = new ParSender(lc);
+		lc.setTransportLayer(sender);
+		sender.run();
+		
+		//re-prompt user for further data
+		boolean finishedSendingMessages = false;
+		Scanner in = new Scanner(System.in);
+		while(!finishedSendingMessages)
+		{
+			System.out.println("Are you finished sending messages? (Enter 0 for No and 1 for Yes) :> ");
+			String answer = in.nextLine();
+			if(answer.equals("1"))
+			{
+				finishedSendingMessages=true;
+			}
+			else
+			{
+				sender.run();	//Recursion hurts my brain...Ow.
+			}
+		}
+
+		in.close();		
+	} 
+} 
