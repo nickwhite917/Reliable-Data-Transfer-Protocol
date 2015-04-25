@@ -1,1 +1,0 @@
-Received 20 bytes: ~/Desktop/chrome.txt
