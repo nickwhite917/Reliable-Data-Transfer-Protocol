@@ -1,0 +1,28 @@
+Received 4 bytes: HEY!
+
+Received 173 bytes: [00:00:03.140] 01:09:36.660 | Trying to open file 'C:\Users\Nick\AppData\Local\Temp\Temp1_sample7.zip\Sample.muse with size:8945664 mod Date:Fri Apr 3 01:09:33 GMT-0400 2015
+
+Received 199 bytes: [00:00:03.156] 01:09:36.668 | Opening file 'C:\Users\Nick\AppData\Local\Temp\Temp1_sample7.zip\Sample.muse' with status:success size:8945664 mod Date:Fri Apr 3 01:09:33 GMT-0400 2015 highestUID: 1983
+
+Received 92 bytes: [00:00:08.859] 01:09:42.380 | APEIMSLibManager::fetchAccessToken - status=0 inProgress=false
+
+Received 161 bytes: [00:13:49.390] 01:23:22.909 | Beginning SaveAs to file 'C:\Users\Nick\AppData\Roaming\Adobe\Adobe Muse CC Libraries\2014.3\Untitled\Untitled.muse' highest UID:81
+
+Received 220 bytes: [00:13:49.594] 01:23:23.109 | SaveAs complete for file 'C:\Users\Nick\AppData\Roaming\Adobe\Adobe Muse CC Libraries\2014.3\Untitled\Untitled.muse' file size:753664 mod Date:Fri Apr 3 01:23:23 GMT-0400 2015 highest UID:81
+
+Received 82 bytes: [00:16:18.531] 01:25:52.038 | Quitting Application after 16.3 minutes. Called by: 
+
+Received 0 bytes: 
+
+Received 173 bytes: [00:00:03.140] 01:09:36.660 | Trying to open file 'C:\Users\Nick\AppData\Local\Temp\Temp1_sample7.zip\Sample.muse with size:8945664 mod Date:Fri Apr 3 01:09:33 GMT-0400 2015
+
+Received 199 bytes: [00:00:03.156] 01:09:36.668 | Opening file 'C:\Users\Nick\AppData\Local\Temp\Temp1_sample7.zip\Sample.muse' with status:success size:8945664 mod Date:Fri Apr 3 01:09:33 GMT-0400 2015 highestUID: 1983
+
+Received 92 bytes: [00:00:08.859] 01:09:42.380 | APEIMSLibManager::fetchAccessToken - status=0 inProgress=false
+
+Received 161 bytes: [00:13:49.390] 01:23:22.909 | Beginning SaveAs to file 'C:\Users\Nick\AppData\Roaming\Adobe\Adobe Muse CC Libraries\2014.3\Untitled\Untitled.muse' highest UID:81
+
+Received 220 bytes: [00:13:49.594] 01:23:23.109 | SaveAs complete for file 'C:\Users\Nick\AppData\Roaming\Adobe\Adobe Muse CC Libraries\2014.3\Untitled\Untitled.muse' file size:753664 mod Date:Fri Apr 3 01:23:23 GMT-0400 2015 highest UID:81
+
+Received 82 bytes: [00:16:18.531] 01:25:52.038 | Quitting Application after 16.3 minutes. Called by: 
+

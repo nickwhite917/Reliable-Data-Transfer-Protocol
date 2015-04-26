@@ -27,50 +27,40 @@ public class ParSender extends TransportLayer{
 
     /*
 	*	Function	:	waitAck 
-	*	Purpose		:	- Waits for activation from 'waitForCallFromAbove' state. 
+	*	Purpose		:	- Waits for activation from 'waitForCallFromAbove' method. 
 	*					- Is given an 'ack' value and a reference to a packet object.
 	*					- Once activated, if timeout occurs, will re-send the packet it was sent.
-	*					- If a packet with 'ack' value equal to own 'ack' value, stops timer and sends to 'waitForCallFromAbove' state.
-	*	Arguments	:	- byte ack		: ack of the packet that is expected
-	*					- Packet sndpkt	: packet that is to be send if timeout occurs
-	*	Returns		:	void
+	*					- If a packet with 'ack' value equal to own 'ack' value 
+	*	Arguments	:	none
+	*	Returns		:	byte array
     */
    public void waitAck(byte ack,Packet sndpkt){
-	   //As soon as state is activated, wait for a packet to arrive, or timeout event
 	   int event = waitForEvent();
-	    if(EVENT_PACKET_ARRIVAL == event) {	//If the event was a packet arrival
+	    if(EVENT_PACKET_ARRIVAL == event) {
 	    	Packet packet = new Packet();
-	    	packet = receiveFromLossyChannel();//Receive the packet from lossy channel
+	    	packet = receiveFromLossyChannel();
 	    	
-	    	if(packet.ack != ack){	//If the ack of the packet is NOT the same as the state's ack
-	    		waitAck(ack,sndpkt);//launch the current state again from the beginning
+	    	if(packet.ack != ack){
+	    		waitAck(ack,sndpkt);
 	    	}
-	    	if(packet.ack == ack){	//If the ack of the packet is NOT the same as the state's ack 
-	    		stopTimer();	//Stop the timer
-	    		waitForCallFromAbove(increment(ack));	//Go to next state and increment the expected ack
+	    	if(packet.ack == ack){
+	    		waitForCallFromAbove(increment(ack));
 	    	}
+		// To be completed for task#2
+		// PAR protocol implementation: sender side
 	    }
-	    else if(EVENT_TIMEOUT == event){	//If a timeout event occurs
-	    	System.out.println("Timeout, resending..."); //Inform the user of a timeout
-	    	sendToLossyChannel(sndpkt);	//Resend the packet
-	    	startTimer();	//Restart the timer
-	    	waitAck(ack,sndpkt); //Enter the same state again with the same packet
+	    else if(EVENT_TIMEOUT == event){
+	    	System.out.println("Timeout, resending...");
+	    	sendToLossyChannel(sndpkt);
+	    	startTimer();
+	    	waitAck(ack,sndpkt);
 
 	    }
    }
-   
-   /*
-	*	Function	:	waitForCallFromAbove 
-	*	Purpose		:	- If a packet is received, continue at current state
-	*					- Once data is processed, make an outgoing packet and send it
-	*					- Then transfer to state waitAck
-	*	Arguments	:	- byte sndpktSeq: seq of the packet to be sent
-	*	Returns		:	void
-   */
    public void waitForCallFromAbove(byte sndpktSeq){
-		Packet sndpkt = new Packet();	//Initialize a new packet
-		sndpkt.seq = sndpktSeq;	//Set the seq to the current state's seq
-		try{ //Try to load the packet with the next line of data from the file/user input
+		Packet sndpkt = new Packet();
+		sndpkt.seq = sndpktSeq;
+		try{
 			sndpkt.payload = inputLines.get(inputLinesIndex).toString().getBytes();
 			sndpkt.length = inputLines.get(inputLinesIndex).toString().length();
 		}
@@ -78,33 +68,27 @@ public class ParSender extends TransportLayer{
 			System.out.printf("Done sending all '%i' message/s! \n",inputLinesIndex);
 			return;
 		}
-		inputLinesIndex++; //Point to next line of data
+		inputLinesIndex++;
 		
 		sendToLossyChannel(sndpkt);
     	startTimer();
-    	waitAck(sndpktSeq,sndpkt);//Transfer to the waitAck state
+    	waitAck(sndpktSeq,sndpkt);
    }
-   
-   /*
-  	*	Function	:	run 
-  	*	Purpose		:	Gets user input regarding what to send, starts the timer, begins the FSM
-  	*	Arguments	:	none
-  	*	Returns		:	void
-     */
+    
     public void run(){
-    	getMessageToSend(); //Get user input, either a file or message.
+    	getMessageToSend();
     	long startTime =0;
     	try{
-    	startTime = System.nanoTime();	//Start the timer
-    	waitForCallFromAbove((byte)0);	//Begin the finite state machine
+    	startTime = System.nanoTime();
+    	waitForCallFromAbove((byte)0);
     	}
     	catch(Exception e){
-    		long stopTime = System.nanoTime(); //Stop the timer
-    		System.out.println((double)(stopTime - startTime)/1000000000);
+    		long stopTime = System.nanoTime();
+    		System.out.println((stopTime - startTime)/1000000000);
     		return;
     	}
     	long stopTime = System.nanoTime();
-    	System.out.println((double)(stopTime - startTime)/1000000000);
+    	System.out.println((stopTime - startTime)/1000000000);
 
     }
     
