@@ -25,7 +25,7 @@ public class ParReceiver extends TransportLayer{
 
 
     public void waitFor(int seqWaitingFor){
-    	System.out.printf("Entered States %s.\n",seqWaitingFor);
+    	System.out.printf("Entered State %s.\n",seqWaitingFor);
 	    int event = waitForEvent();
 	    if(EVENT_PACKET_ARRIVAL == event) {
 	    	Packet packetReceived = new Packet();

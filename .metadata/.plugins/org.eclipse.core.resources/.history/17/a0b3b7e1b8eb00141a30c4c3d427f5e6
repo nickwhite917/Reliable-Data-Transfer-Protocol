@@ -23,30 +23,51 @@ public class ParReceiver extends TransportLayer{
 	super(lc);
     }
 
-
-    public void waitFor(int seqWaitingFor){
-    	System.out.printf("Entered States %s.\n",seqWaitingFor);
+    public void waitForZero(){
+    	System.out.println("Entered State 0.");
 	    int event = waitForEvent();
 	    if(EVENT_PACKET_ARRIVAL == event) {
 	    	Packet packetReceived = new Packet();
 			packetReceived = receiveFromLossyChannel();
-			if(packetReceived.seq != (byte)seqWaitingFor){
+			if(packetReceived.seq == 1){
 				Packet packetToSend = new Packet();
-				packetToSend.ack = packetReceived.seq;
+				packetToSend.ack = 1;
 				sendToLossyChannel(packetToSend);
 			}
-			else if(packetReceived.seq == (byte)seqWaitingFor){
+			else if(packetReceived.seq == 0){
 				deliverMessage(packetReceived);
 				deliverMessageToFile(packetReceived);
 				Packet packetToSend = new Packet();
-				packetToSend.ack = (byte)seqWaitingFor;
+				packetToSend.ack = 0;
 				sendToLossyChannel(packetToSend);
-				waitFor((int)increment((byte)seqWaitingFor));
+				waitForOne();
+			}
+	    }	    
+	    
+    }
+    public void waitForOne(){
+    	System.out.println("Entered State 1.");
+	    int event = waitForEvent();
+	    if(EVENT_PACKET_ARRIVAL == event) {
+	    	Packet packetReceived = new Packet();
+			packetReceived = receiveFromLossyChannel();
+			if(packetReceived.seq == 0){
+				Packet packetToSend = new Packet();
+				packetToSend.ack = 0;
+				sendToLossyChannel(packetToSend);
+			}
+			else if(packetReceived.seq == 1){
+				deliverMessage(packetReceived);
+				deliverMessageToFile(packetReceived);
+				Packet packetToSend = new Packet();
+				packetToSend.ack = 1;
+				sendToLossyChannel(packetToSend);
+				waitForZero();
 			}
 	    }	 
     }
     public void run(){
-		waitFor(0);
+		waitForZero();
 	}
 	    
     // To be modified for task#5
