@@ -1,2 +1,0 @@
-Received 6 bytes: HELLO!
-Received 6 bytes: Hello!
