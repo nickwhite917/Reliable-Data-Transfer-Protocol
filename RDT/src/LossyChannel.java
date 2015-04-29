@@ -38,30 +38,30 @@ public class LossyChannel {
 	m_transportLayer = tl;
     }
 
+    //This function simulates packet loss
     public void send(byte[] payload) {
-	//
-	// To be modified for task#3
-	//
-	// simulate random loss of packet
-	Random rand = new Random();
-	int randnum = rand.nextInt(10); // range 0-10
-	if(randnum < userDefinedLossRate/10)
-	    return; // simulate a loss
+		Random rand = new Random();
+		int randnum = rand.nextInt(10); // range 0-10
+		if(randnum < userDefinedLossRate/10) //userDefinedLossRate is defined as a public data-member of this class
+		    return; // simulate a loss
 
-	try {
-	    DatagramPacket p = 
-		new DatagramPacket(payload, payload.length, 
-				   m_IPAddress, m_remoteport); 
-	    //System.out.println("LossyChannel::send: "+new String(p.getData()));
-	    m_socket.send(p);
-	} catch(Exception e) {
-	    System.out.println("Error sending packet: "+e);
-	}
+		try {
+		    DatagramPacket p = 
+			new DatagramPacket(payload, payload.length, 
+					   m_IPAddress, m_remoteport); 
+		    //System.out.println("LossyChannel::send: "+new String(p.getData()));
+		    m_socket.send(p);
+		} catch(Exception e) {
+		    System.out.println("Error sending packet: "+e);
+		}
     }
 
     // Interface provided to the transport layer to pick up message received
     public byte[] receive() {
 	return m_receiveBuffer;
+    }
+    public void setUserDefinedLossRate(int lossRate){
+    	userDefinedLossRate = lossRate;
     }
 
     // Thread to read packets arrived from the network and to notify

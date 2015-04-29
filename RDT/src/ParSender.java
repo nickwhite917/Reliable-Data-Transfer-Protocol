@@ -195,7 +195,8 @@ public class ParSender extends TransportLayer{
     	//Instantiate lossy channel
 		LossyChannel lc = new LossyChannel(SENDER_PORT, RECEIVER_PORT); //Instantiate lossy channel
 		//Get packet loss rate from user
-		lc.userDefinedLossRate = getLossRate();
+		lc.setUserDefinedLossRate(getLossRate());
+		//lc.userDefinedLossRate = getLossRate();
 		//Instantiate and run sender ParSender
 		ParSender sender = new ParSender(lc);
 		lc.setTransportLayer(sender);
