@@ -11,11 +11,8 @@ import java.util.*;
 public class ParReceiver extends TransportLayer{
     public static final int RECEIVER_PORT = 9888;
     public static final int SENDER_PORT = 9887;
-    public static Hashtable<Byte,Packet> packetBuf = new Hashtable<Byte,Packet>(){/**
-		 * 
-		 */
+    public static Hashtable<Byte,Packet> packetBuf = new Hashtable<Byte,Packet>(){
 		private static final long serialVersionUID = 4446462988040792573L;
-
 	{
 				
 	}};
@@ -23,17 +20,30 @@ public class ParReceiver extends TransportLayer{
 	super(lc);
     }
 
-
+    /*
+	*	Function	:	waitFor
+	*	Purpose		:	- Waits for activation from 'run' method or 'waitFor' state. 
+	*					- Is given a 'seq' value which is the seq it is looking for.
+	*					- Waits for event, if event is a packet arrival and the seq is 
+	*						equal to the seqWaitingFor: message is delivered, packet is created and sent back,
+	*						same state is entered but with seqWaitingFor incremented
+	*					- If it is not... sends back ack
+	*	Arguments	:	- byte ack		: ack of the packet that is expected
+	*					- Packet sndpkt	: packet that is to be send if timeout occurs
+	*	Returns		:	void
+    */
     public void waitFor(int seqWaitingFor){
-    	System.out.printf("Entered State %s.\n",seqWaitingFor);
+    	System.out.printf("Entered State: Waiting For %s.\n",seqWaitingFor);
 	    int event = waitForEvent();
 	    if(EVENT_PACKET_ARRIVAL == event) {
 	    	Packet packetReceived = new Packet();
 			packetReceived = receiveFromLossyChannel();
 			if(packetReceived.seq != (byte)seqWaitingFor){
+				//Corruption
 				Packet packetToSend = new Packet();
 				packetToSend.ack = packetReceived.seq;
 				sendToLossyChannel(packetToSend);
+				waitFor(seqWaitingFor);
 			}
 			else if(packetReceived.seq == (byte)seqWaitingFor){
 				deliverMessage(packetReceived);
@@ -88,6 +98,5 @@ public class ParReceiver extends TransportLayer{
 	ParReceiver receiver = new ParReceiver(lc);
 	lc.setTransportLayer(receiver);
 	receiver.run();
-	//receiver.run();
     } 
 }  

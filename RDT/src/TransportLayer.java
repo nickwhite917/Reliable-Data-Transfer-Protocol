@@ -11,7 +11,7 @@ public abstract class TransportLayer {
     public static final int EVENT_PACKET_ARRIVAL = 0;
     public static final int EVENT_TIMEOUT = 1;
     public static final int EVENT_MESSAGE_TOSEND = 2;
-    public static final long TIMEOUT = 3000; // in millisecond
+    public static final long TIMEOUT = 1000; // in millisecond
 
     java.util.Timer m_timer;
     SendTimerTask m_timerTask = new SendTimerTask();

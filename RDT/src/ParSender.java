@@ -36,6 +36,7 @@ public class ParSender extends TransportLayer{
 	*	Returns		:	void
     */
    public void waitAck(byte ack,Packet sndpkt){
+   	try{
 	   //As soon as state is activated, wait for a packet to arrive, or timeout event
 	   int event = waitForEvent();
 	    if(EVENT_PACKET_ARRIVAL == event) {	//If the event was a packet arrival
@@ -47,6 +48,7 @@ public class ParSender extends TransportLayer{
 	    	}
 	    	if(packet.ack == ack){	//If the ack of the packet is NOT the same as the state's ack 
 	    		stopTimer();	//Stop the timer
+	    		//System.out.printf(" %d percent complete...",(inputLines.size()/inputLinesIndex));
 	    		waitForCallFromAbove(increment(ack));	//Go to next state and increment the expected ack
 	    	}
 	    }
@@ -57,6 +59,8 @@ public class ParSender extends TransportLayer{
 	    	waitAck(ack,sndpkt); //Enter the same state again with the same packet
 
 	    }
+	}
+	catch(Exception ex){return;}
    }
    
    /*
@@ -68,6 +72,7 @@ public class ParSender extends TransportLayer{
 	*	Returns		:	void
    */
    public void waitForCallFromAbove(byte sndpktSeq){
+   	try{
 		Packet sndpkt = new Packet();	//Initialize a new packet
 		sndpkt.seq = sndpktSeq;	//Set the seq to the current state's seq
 		try{ //Try to load the packet with the next line of data from the file/user input
@@ -83,6 +88,8 @@ public class ParSender extends TransportLayer{
 		sendToLossyChannel(sndpkt);
     	startTimer();
     	waitAck(sndpktSeq,sndpkt);//Transfer to the waitAck state
+    }
+    catch(Exception ex){return;}
    }
    
    /*
@@ -155,10 +162,8 @@ public class ParSender extends TransportLayer{
 		 	//Return the contents of the file in byte form
 		    
 		} catch(Exception e) { //Executed when the user enters a message, not a file path
-		   // System.out.printf("Sending '%s' ",userInputFromConsole);
 		    inputLines = new ArrayList<String>();
 		    inputLines.add(userInputFromConsole);
-		    //Return the message string in byte form
 		}
     }
 
@@ -196,7 +201,6 @@ public class ParSender extends TransportLayer{
 		LossyChannel lc = new LossyChannel(SENDER_PORT, RECEIVER_PORT); //Instantiate lossy channel
 		//Get packet loss rate from user
 		lc.setUserDefinedLossRate(getLossRate());
-		//lc.userDefinedLossRate = getLossRate();
 		//Instantiate and run sender ParSender
 		ParSender sender = new ParSender(lc);
 		lc.setTransportLayer(sender);
